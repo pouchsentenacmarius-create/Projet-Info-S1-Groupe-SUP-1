@@ -78,6 +78,7 @@ int abs(int a){return a * (-(a<0));}
 int max(int a ,int b){if(a>b){return a;}return b;}
 int min(int a ,int b){if(a<b){return a;}return b;}
 
+int randint(int a,int b){return rand()%(b-a+1)+a;}
 
 _victime* cree_victime(_victime_type type ,_victime_genre genre ,int age ,_victime_gravite gravite ,_victime_location location){
     //allocation
@@ -111,6 +112,7 @@ _chainon_victime* cree_chainon_victime(_victime* victime){
 
 _chainon_victime* ajout_liste_victime(_chainon_victime* victimes ,_victime* victime){//ajout un chainon victime au debut de la liste victime
     _chainon_victime* p_new = cree_chainon_victime(victime);
+    p_new->victime = victime;
     p_new->p_next = victimes;
     return p_new;
 }
@@ -162,22 +164,21 @@ _chainon_vehicule* cree_chainon_vehicule(_vehicule* vehicule){
 _chainon_vehicule* ajout_liste_vehicule(_chainon_vehicule* vehicules ,_vehicule* vehicule){//ajout un chainon vehicule au debut de la liste vehicule
     _chainon_vehicule* p_new = cree_chainon_vehicule(vehicule);
     p_new->vehicule = vehicule;
+   	p_new->p_next = vehicules;
     return p_new;
 }
 
-int rechercher_vehicule_dans_liste(_chainon_vehicule* vehicules ,int vehicule_id ,_vehicule* vehicule){
+_vehicule* rechercher_vehicule_dans_liste(_chainon_vehicule* vehicules ,int vehicule_id){
+	if(!vehicules){
+		printf("erreur le pointeur 'vehicules' dans int* rechercher_vehicule_dans_liste(...) est nul\n");
+		exit(0);
+	}
 	_chainon_vehicule* p = vehicules;
 	while(p){
 	
 		//si on a trouvé le vehicule recherché 
 		if(p->vehicule->vehicule_id == vehicule_id){
-		
-			vehicule->vehicule_id = p->vehicule->vehicule_id;
-			vehicule->purpose = p->vehicule->purpose;
-			vehicule->victimes = p->vehicule->victimes;
-			
-			vehicule = p->vehicule;
-			return 1;
+			return p->vehicule;
 		}
 
 		p = p->p_next;
@@ -234,15 +235,15 @@ _accident* ajout_victime_a_accident(_accident* accident ,int vehicule_id ,_victi
 		exit(0);
 	}
 	
-	_vehicule* p_vehicule = NULL;
-	if(rechercher_vehicule_dans_liste(accident->vehicules ,vehicule_id ,p_vehicule))/*verifi si le vehicule recherché est présent dans la liste des vehicules de l'accident*/{
+	_vehicule* p_vehicule = rechercher_vehicule_dans_liste(accident->vehicules ,vehicule_id);
+	if(p_vehicule)/*verifi si le vehicule recherché est présent dans la liste des vehicules de l'accident*/{
+		//printf("%p \n",p_vehicule);
 		p_vehicule->victimes = ajout_liste_victime(p_vehicule->victimes ,victime);
 	}
 	else{
 		printf("erreur le vehicule recherché est présent dans la liste des vehicules de l'accident dans _accident* ajout_victime_a_accident(...)\n");
 		exit(0);
 	}	
-	
 	return accident;
 }
 
@@ -302,7 +303,9 @@ int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		/
 	int len_A = get_id_collision_len(cle_A);
 	int len_B = get_id_collision_len(cle_A);
 	if(!(len_A && len_B)){
+		
 		printf("erreur de longueur de id_collision dans int compare_cle(...)\n");
+		printf("!(%d && %d)\n",len_A ,len_B);
 		exit(0);
 	}
 	
@@ -362,7 +365,7 @@ _AVL_accident* insert_AVL_rec(_AVL_accident* a ,_accident* accident ,int* h){
 		return cree_AVL_accident(accident);
 	}
 	
-	switch(compare_cle(a->accident->cle ,accident->cle)){
+	switch(compare_cle(accident->cle ,a->accident->cle)){
 		default:
 			*h = 0;
 			return a;
@@ -470,11 +473,221 @@ _AVL_accident* equilibrer_AVL(_AVL_accident* a){
 
 }
 
+void print_victime(_victime* victime){
+	if(!victime){
+		printf("                     |victime : NULL\n");
+		printf("                     |________\n");
+		return ;
+	}
+	printf("                     |victime (%p):\n",victime);
+	printf("                     |       type	:%d\n",victime->type);
+	printf("                     |       genre	:%d\n",victime->genre);
+	printf("                     |       location:%d\n",victime->location);
+	printf("                     |       age		:%d ans\n",victime->age);
+	printf("                     |_______gravite	:%d\n",victime->gravite);
 
+}
+
+void print_victime_liste(_chainon_victime* victimes){
+	if(!victimes){
+		printf("                     |victimes : <empty>\n");
+		printf("                     |________\n");
+		return ;
+	}
+	
+	print_victime(victimes->victime);
+	
+	_chainon_victime* p = victimes->p_next;
+	while(p){
+		printf("                          ||\n");
+		printf("                          ||\n");
+		printf("                          \\/\n");
+		print_victime(p->victime);
+		p = p->p_next;
+	}
+}
+
+void print_vehicule(_vehicule* vehicule){
+	if(!vehicule){
+		printf("              |vehicule : NULL\n");
+		printf("              |________\n");
+		return ;
+	}
+	printf("              |vehicule (%p):\n",vehicule);
+	printf("              |       id      :%d\n",vehicule->vehicule_id);
+	printf("              |       purpose	:%d\n",vehicule->purpose);
+	printf("              |_______victimes:\n");
+	print_victime_liste(vehicule->victimes);
+	
+}
+
+void print_vehicule_liste(_chainon_vehicule* vehicules){
+	if(!vehicules){
+		printf("              |vehicules : <empty>\n");
+		printf("              |________\n");
+		return ;
+	}
+	
+	print_vehicule(vehicules->vehicule);
+	
+	_chainon_vehicule* p = vehicules->p_next;
+	while(p){
+		printf("                 ||\n");
+		printf("                 ||\n");
+		printf("                 \\/\n");
+		print_vehicule(p->vehicule);
+		p = p->p_next;
+	}
+}
+
+void print_accident(_accident* accident){
+	if(!accident){
+		printf("      |accident : NULL\n");
+		return ;
+	}
+	printf("      |accident(%p):\n",accident);
+	printf("      |           cle:%s\n",accident->cle);
+	printf("      |_____vehicules:\n");
+	print_vehicule_liste(accident->vehicules);
+}
+
+void print_noeud_AVL_accident(_AVL_accident* a){
+	if(!a){
+		printf("|noeud_AVL : NULL\n");
+		return ;
+	}
+	printf("|noeud_AVL(%p):\n",a);
+	printf("|     eq:%d\n",a->eq);
+	printf("|     fg: %p			|_fg: %p\n",a->fg,a->fd);
+	printf("|_____accident:\n",a->accident);
+	print_accident(a->accident);
+}
+
+void print_AVL_accident_suffixe(_AVL_accident* a){
+		if(AVL_a_fils_gauche(a)){
+			print_AVL_accident_suffixe(a->fg);	
+			printf("\n");
+		}
+		if(AVL_a_fils_droit(a)){
+			print_AVL_accident_suffixe(a->fd);
+			printf("\n");
+		}
+		if(a){
+			print_noeud_AVL_accident(a);	
+			printf("\n");
+		}
+}
+
+void print_AVL_accident_prefixe(_AVL_accident* a){
+		if(a){
+			print_noeud_AVL_accident(a);	
+			printf("\n");
+		}
+		if(AVL_a_fils_gauche(a)){
+			print_AVL_accident_prefixe(a->fg);
+			printf("\n");	
+		}
+		if(AVL_a_fils_droit(a)){
+			print_AVL_accident_prefixe(a->fd);	
+			printf("\n");
+		}
+}
+
+void print_AVL_accident_interfixe(_AVL_accident* a){
+		if(AVL_a_fils_gauche(a)){
+			print_AVL_accident_interfixe(a->fg);	
+			printf("\n");
+		}
+		if(a){
+			print_noeud_AVL_accident(a);	
+			printf("\n");
+		}
+		if(AVL_a_fils_droit(a)){
+			print_AVL_accident_interfixe(a->fd);
+			printf("\n");	
+		}
+}
+
+int	AVL_a_fils_gauche(_AVL_accident* a);
+int	AVL_a_fils_droit(_AVL_accident* a);
+
+char* rand_char_generator(int len){
+	char* new = NULL;
+	len++;
+	new = malloc((len)*sizeof(char)); 
+	exit_if_null(new);
+	
+	for(int i=0;i<len-1;i++){
+		new[i] = randint('0','9');
+	}
+	new[len] = '\0';
+	//printf("a <%p> <%s> \n",new,new);
+	return new;
+}
 
 
 
 void main(){
+	printf("startig program\n");
+
+	_AVL_accident* a = NULL;
+	_accident* accident = NULL;
+	int nb_accident = 3; 
+	int nb_vehicule = 5; 
+	int nb_victime = 5;
+	for(int i=0;i<nb_accident;i++){
+		accident = cree_accident(rand_char_generator(10));
+		
+		for(int i=0;i<nb_vehicule;i++){
+			accident = ajout_vehicule_a_accident(accident ,cree_vehicule(i,0));
+		}
+		
+		for(int i=0;i<nb_victime;i++){
+			accident = ajout_victime_a_accident(accident ,randint(0,nb_vehicule-1) ,cree_victime(randint(1,3) ,randint(1,3) ,randint(0,100) ,randint(0,4) ,randint(1,2)));
+		}
+		
+		a = insert_AVL(a ,accident);
+	}
+	
+	print_AVL_accident_interfixe(a);
+	//print_noeud_AVL_accident(a);
+
+
+
+
+
+
+
+	printf("program ended\n");
+}
+
+/*
+int main(){
+
+
+
+
+while(1){
+	switch(mode){
+	
+		default:
+			break;
+		cas mode_1:
+			fonction pour faire mode 1
+		cas mode 2 
+			fonction pour faire mode 2
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	}
+
 
 
 
@@ -485,3 +698,49 @@ void main(){
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
