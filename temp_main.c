@@ -11,7 +11,7 @@ lien github : https://github.com/pouchsentenacmarius-create/Projet-Info-S1-Group
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <time.h>
 // la longueur de l'année ,ex: '2024'-> 4 longueur
 #define  anne_len 4 
 
@@ -301,7 +301,8 @@ int get_id_collision_len(char* cle){
 
 int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		//"2005--------------------------------\0"
 	int len_A = get_id_collision_len(cle_A);
-	int len_B = get_id_collision_len(cle_A);
+	int len_B = get_id_collision_len(cle_B);
+	
 	if(!(len_A && len_B)){
 		
 		printf("erreur de longueur de id_collision dans int compare_cle(...)\n");
@@ -336,7 +337,6 @@ int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		/
 			}
 		}
 	}
-	
 	char* pA = cle_A;
 	char* pB = cle_B; 
 	if(len_A > len_B){
@@ -347,11 +347,11 @@ int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		/
 	}
 	
 	int taille_min = min(len_A ,len_B);
-	for(int i=0;i<taille_min;i++){
-		if(cle_A[i] > cle_B[i]){
+	for(int i=anne_len;i<taille_min+anne_len;i++){
+		if(pA[i] > pB[i]){
 			return 1;
 		}
-		else if(cle_A[i] < cle_B[i]){
+		else if(pA[i] < pB[i]){
 			return -1;
 		}	
 	}
@@ -359,51 +359,13 @@ int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		/
 	
 }
 
-
-_AVL_accident* insert_AVL_rec(_AVL_accident* a ,_accident* accident ,int* h){
-	if(!a){
-		return cree_AVL_accident(accident);
-	}
-	
-	switch(compare_cle(accident->cle ,a->accident->cle)){
-		default:
-			*h = 0;
-			return a;
-			
-		case 1://insert à gauche
-			a->fg = insert_AVL_rec(a->fg ,accident ,h);
-			*h *= -1;
-			break;
-			
-		case -1://insert à droite
-			a->fd = insert_AVL_rec(a->fd ,accident ,h);
-			//*h *= 1;
-			break;
-	}
-	if(*h){
-		a->eq += *h;
-		*h = a->eq != 0;
-	}
-	return a;
-}
-
-_AVL_accident* insert_AVL(_AVL_accident* a ,_accident* accident){
-	int h = 1;
-	return insert_AVL_rec(a ,accident ,&h);
-}
-	
-/*
-int	AVL_a_fils_gauche(_AVL_accident* a)
-int	AVL_a_fils_droit(_AVL_accident* a)
-*/
-
 _AVL_accident* AVL_rotation_droite(_AVL_accident* a){
 	if(!AVL_a_fils_droit(a)){
 		return a;
 	}
-	_AVL_accident* p = a->fd;
-	a->fd = p->fg;
-	p->fg = a;
+	_AVL_accident* p = a->fg;
+	a->fg = p->fd;
+	p->fd = a;
 	
 	//mise à jour de l'equilibre
 	int eq_a = a->eq;
@@ -418,9 +380,9 @@ _AVL_accident* AVL_rotation_gauche(_AVL_accident* a){
 	if(!AVL_a_fils_gauche(a)){
 		return a;
 	}
-	_AVL_accident* p = a->fg;
-	a->fg = p->fd;
-	p->fd = a;
+	_AVL_accident* p = a->fd;
+	a->fd = p->fg;
+	p->fg = a;
 	
 	//mise à jour de l'equilibre
 	int eq_a = a->eq;
@@ -453,25 +415,119 @@ _AVL_accident* equilibrer_AVL(_AVL_accident* a){
 	if(!a){
 		return a;
 	}
+	printf("		cle : %s			eq: %d\n",a->accident->cle ,a->eq);
 	if(a->eq <= -2){
 		if(a->fg->eq <= 0){
+			printf("			|	rd\n");
 			a = AVL_rotation_droite(a);
 		}
 		else{
+			printf("			|	2rd\n");
 			a = AVL_douvle_rotation_droite(a);
 		}
 	}
 	else if(a->eq >= 2){
 		if(a->fd->eq >= 0){
+			printf("			|	rg\n");
 			a = AVL_rotation_gauche(a);
 		}
 		else{
+			printf("			|	2rg\n");
 			a = AVL_douvle_rotation_gauche(a);
 		}
 	}
 	return a;
 
 }
+/*
+
+
+
+10 3 5 15 20 12 7 9
+             s                                                                                                                                                       
+                                                                                                                                                                     
+                                 5                                                                                                                                      
+                              /     \                                                                                                                                  
+                            3        10                                                                                                                                     
+                                        \                                                                                                                              
+                                  5      15                                                                                                                              
+                                       /  \                                                                                                                             
+                                3    12     20                                                                                                                            
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                                                                                                     
+                                                                                             
+                               10                                                             
+                            /     \                                                          
+                         5          15                infixe :  3 9 7 5 12 20 15 10                                    
+                       /  \        /  \                                                      
+                      3    7     12   20                                                 
+                            \                                                                
+                            9      
+
+
+
+                                                                                             
+                             ->10                                                             
+                            /     \                                                          
+                         5          15                                                                                             
+                       /  \        /  \                                                      
+                      3    7     12   20                                                 
+                            \                                                                
+                            9                                                              
+                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                   
+                            
+                            
+                            
+
+
+
+
+
+*/
+_AVL_accident* insert_AVL_rec(_AVL_accident* a ,_accident* accident ,int* h){
+	if(!a){
+		return cree_AVL_accident(accident);
+	}
+	//printf("<%d>\n",compare_cle(a->accident->cle ,accident->cle ));
+	switch(compare_cle(accident->cle ,a->accident->cle )){
+		default:
+			*h = 0;
+			return a;
+			
+		case -1://insert à gauche
+			a->fg = insert_AVL_rec(a->fg ,accident ,h);
+			*h *= -1;
+			break;
+			
+		case 1://insert à droite
+			a->fd = insert_AVL_rec(a->fd ,accident ,h);
+			*h *= 1;
+			break;
+	}
+	if((*h)){
+		a->eq += *h;
+		a = equilibrer_AVL(a);
+		*h = a->eq != 0;
+	}
+	return a;
+}
+
+_AVL_accident* insert_AVL(_AVL_accident* a ,_accident* accident){
+	int h = 1;
+	return insert_AVL_rec(a ,accident ,&h);
+}
+
 
 void print_victime(_victime* victime){
 	if(!victime){
@@ -628,13 +684,116 @@ char* rand_char_generator(int len){
 
 
 void main(){
+	for(int i=0;i<500;i++){
+		printf("\n");
+	}
+
+
+
 	printf("startig program\n");
 
+	//_AVL_accident* a = NULL;
+/*	
+	a = insert_AVL(a ,cree_accident("2005000000010"));
+	a = insert_AVL(a ,cree_accident("2005000000005"));
+	a = insert_AVL(a ,cree_accident("2005000000012"));
+	a = insert_AVL(a ,cree_accident("2005000000002"));
+	a = insert_AVL(a ,cree_accident("2005000000007"));
+	a = insert_AVL(a ,cree_accident("2005000000013"));
+	a = insert_AVL(a ,cree_accident("2005000000007"));
+	a = insert_AVL(a ,cree_accident("2005000000009"));
+	
+	print_AVL_accident_suffixe(a);
+	*/
+	//10 3 5 15 20 12 7 9
+	
+	
+	
+	_AVL_accident* a = NULL;
+	
+	a = insert_AVL(a ,cree_accident("2005000000010"));
+	a = insert_AVL(a ,cree_accident("2005000000003"));
+	a = insert_AVL(a ,cree_accident("2005000000005"));
+	a = insert_AVL(a ,cree_accident("2005000000015"));
+	a = insert_AVL(a ,cree_accident("2005000000020"));
+	a = insert_AVL(a ,cree_accident("2005000000012"));
+	a = insert_AVL(a ,cree_accident("2005000000007"));
+	a = insert_AVL(a ,cree_accident("2005000000009"));
+	
+	/*
+	a = insert_AVL(a ,cree_accident("2005000000002"));
+	a = insert_AVL(a ,cree_accident("2005000000001"));
+	a = insert_AVL(a ,cree_accident("2005000000004"));
+	a = insert_AVL(a ,cree_accident("2005000000003"));
+	a = insert_AVL(a ,cree_accident("2005000000006"));
+	a = insert_AVL(a ,cree_accident("2005000000005"));
+	a = insert_AVL(a ,cree_accident("2005000000007"));
+	//a = insert_AVL(a ,cree_accident("2005000000009"));
+	*/
+	print_AVL_accident_suffixe(a);
+	//a = equilibrer_AVL(a);
+	printf("------------------\n\n\n");
+	print_AVL_accident_suffixe(a);
+	
+/*
+AVL:
+10 3 5 15 20 12 7 9
+                                             
+                                                                                             
+                               10                                                             
+                            /     \                                                          
+                         5          15                infixe :  3 9 7 5 12 20 15 10                                    
+                       /  \        /  \                                                      
+                      3    7     12   20                                                 
+                            \                                                                
+                            9                                                           
+                                                                                                                                    
+                                                                                                                                                                                           
+                                                  value    eq                                                                                                                                    
+                              2                     1       0                                                                                                                                
+                             / \                    2       2                                                                                                                                
+                            1  4                    3       0
+                              / \                   4       1                                                                                                                                               
+                             3   6                  5       0                                                                                                                           
+                                / \                 6       0                                                                                                                                   
+                               5   7                7       0    
+                               
+                               
+                                                                                                                                                                                                                
+                                                  value    eq                                                                                                                                    
+                                                    1       0                                                                                                                                
+                                                    2       2                                                                                                                                
+                            2__4                    3       0
+                           / \  \                   4       1                                                                                                                                               
+                          1  3   6                  5       0                                                                                                                           
+                                / \                 6       0                                                                                                                                   
+                               5   7                7       0              
+                               
+                               
+                               
+                                                                                                                                                      
+                                                                                           
+                     equilibration vVVVv                                                                      
+                                                                                           
+                                 4                                                              
+                              /    \                                                       
+                            2       6                                                        
+                          /  \     / \                                                    
+                         1   3    5   7                                                      
+                                                                                           
+                                                                                                                                                                                           
+                                                                                                                                                                                           
+                                                                                                                                                                                                 
+*/
+    /*                                       
+	srand(time(NULL));
+	*/
+	/*
 	_AVL_accident* a = NULL;
 	_accident* accident = NULL;
-	int nb_accident = 3; 
-	int nb_vehicule = 5; 
-	int nb_victime = 5;
+	int nb_accident = 500; 
+	int nb_vehicule = 0; 
+	int nb_victime = 0;
 	for(int i=0;i<nb_accident;i++){
 		accident = cree_accident(rand_char_generator(10));
 		
@@ -649,81 +808,22 @@ void main(){
 		a = insert_AVL(a ,accident);
 	}
 	
-	print_AVL_accident_interfixe(a);
+	print_AVL_accident_suffixe(a);
 	//print_noeud_AVL_accident(a);
 
-
+	*/
 
 
 
 
 
 	printf("program ended\n");
-}
-
-/*
-int main(){
-
-
-
-
-while(1){
-	switch(mode){
-	
-		default:
-			break;
-		cas mode_1:
-			fonction pour faire mode 1
-		cas mode 2 
-			fonction pour faire mode 2
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	for(int i=0;i<20;i++){
+		printf("\n");
 	}
-
-
-
-
-
-
-
-
-
-
+	/**/
 }
 
-
-
-
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
 
 
