@@ -299,7 +299,7 @@ int get_id_collision_len(char* cle){
 	return len;
 }
 
-int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		//"2005--------------------------------\0"
+int compare_cle(char* cle_A ,char* cle_B)/*return: 1:(A>B) 0:(A==B) -1:(A<B)*/{ 		//"2005--------------------------------\0"
 	int len_A = get_id_collision_len(cle_A);
 	int len_B = get_id_collision_len(cle_B);
 	
@@ -360,7 +360,7 @@ int compare_cle(char* cle_A ,char* cle_B)/*return: 1(A>B) 0(A==B) -1(A<B)*/{ 		/
 }
 
 _AVL_accident* AVL_rotation_droite(_AVL_accident* a){
-	if(!AVL_a_fils_droit(a)){
+	if(!AVL_a_fils_gauche(a)){
 		return a;
 	}
 	_AVL_accident* p = a->fg;
@@ -377,7 +377,7 @@ _AVL_accident* AVL_rotation_droite(_AVL_accident* a){
 }
 
 _AVL_accident* AVL_rotation_gauche(_AVL_accident* a){
-	if(!AVL_a_fils_gauche(a)){
+	if(!AVL_a_fils_droit(a)){
 		return a;
 	}
 	_AVL_accident* p = a->fd;
@@ -393,8 +393,8 @@ _AVL_accident* AVL_rotation_gauche(_AVL_accident* a){
 	return p;
 }
 
-_AVL_accident* AVL_douvle_rotation_gauche(_AVL_accident* a){
-	if(!a){
+_AVL_accident* AVL_double_rotation_gauche(_AVL_accident* a){
+	if(!AVL_a_fils_droit(a)){
 		return a;
 	}
 	a->fd = AVL_rotation_droite(a->fd);
@@ -402,8 +402,8 @@ _AVL_accident* AVL_douvle_rotation_gauche(_AVL_accident* a){
 	return a;
 }
 
-_AVL_accident* AVL_douvle_rotation_droite(_AVL_accident* a){
-	if(!a){
+_AVL_accident* AVL_double_rotation_droite(_AVL_accident* a){
+	if(!AVL_a_fils_gauche(a)){
 		return a;
 	}
 	a->fg = AVL_rotation_gauche(a->fg);
@@ -415,88 +415,35 @@ _AVL_accident* equilibrer_AVL(_AVL_accident* a){
 	if(!a){
 		return a;
 	}
-	printf("		cle : %s			eq: %d\n",a->accident->cle ,a->eq);
+	//printf("		cle : %s			eq: %d\n",a->accident->cle ,a->eq);
 	if(a->eq <= -2){
 		if(a->fg->eq <= 0){
-			printf("			|	rd\n");
+			//printf("			|	rd\n");
 			a = AVL_rotation_droite(a);
 		}
 		else{
-			printf("			|	2rd\n");
-			a = AVL_douvle_rotation_droite(a);
+			//printf("			|	2rd\n");
+			a = AVL_double_rotation_droite(a);
 		}
 	}
 	else if(a->eq >= 2){
 		if(a->fd->eq >= 0){
-			printf("			|	rg\n");
+			//printf("			|	rg\n");
 			a = AVL_rotation_gauche(a);
 		}
 		else{
-			printf("			|	2rg\n");
-			a = AVL_douvle_rotation_gauche(a);
+			//printf("			|	2rg\n");
+			a = AVL_double_rotation_gauche(a);
 		}
 	}
 	return a;
 
 }
-/*
 
-
-
-10 3 5 15 20 12 7 9
-             s                                                                                                                                                       
-                                                                                                                                                                     
-                                 5                                                                                                                                      
-                              /     \                                                                                                                                  
-                            3        10                                                                                                                                     
-                                        \                                                                                                                              
-                                  5      15                                                                                                                              
-                                       /  \                                                                                                                             
-                                3    12     20                                                                                                                            
-                                                                                                                                                                     
-                                                                                                                                                                     
-                                                                                                                                                                     
-                                                                                                                                                                     
-                                                                                                                                                                     
-                                                                                             
-                               10                                                             
-                            /     \                                                          
-                         5          15                infixe :  3 9 7 5 12 20 15 10                                    
-                       /  \        /  \                                                      
-                      3    7     12   20                                                 
-                            \                                                                
-                            9      
-
-
-
-                                                                                             
-                             ->10                                                             
-                            /     \                                                          
-                         5          15                                                                                             
-                       /  \        /  \                                                      
-                      3    7     12   20                                                 
-                            \                                                                
-                            9                                                              
-                                                                                                                                                                                              
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                   
-                            
-                            
-                            
-
-
-
-
-
-*/
 _AVL_accident* insert_AVL_rec(_AVL_accident* a ,_accident* accident ,int* h){
 	if(!a){
+	    *h = 1;
+	    printf("\n");
 		return cree_AVL_accident(accident);
 	}
 	//printf("<%d>\n",compare_cle(a->accident->cle ,accident->cle ));
@@ -525,6 +472,7 @@ _AVL_accident* insert_AVL_rec(_AVL_accident* a ,_accident* accident ,int* h){
 
 _AVL_accident* insert_AVL(_AVL_accident* a ,_accident* accident){
 	int h = 1;
+	//printf("    || <%s> <%p>\n",accident->cle ,accident->cle);
 	return insert_AVL_rec(a ,accident ,&h);
 }
 
@@ -664,8 +612,25 @@ void print_AVL_accident_interfixe(_AVL_accident* a){
 		}
 }
 
-int	AVL_a_fils_gauche(_AVL_accident* a);
-int	AVL_a_fils_droit(_AVL_accident* a);
+_AVL_accident* rechercher_accident_dans_AVL(_AVL_accident* a ,char* cle){
+    if(!a){
+        return NULL;    
+    }
+    int nb = compare_cle(cle ,a->accident->cle);
+    //printf(" %d     <%s> <%s> ",nb ,cle ,a->accident->cle);
+    switch(nb){
+        case -1: //recherche à gauche
+            //printf("g\n");
+            return rechercher_accident_dans_AVL(a->fg ,cle);
+        case 1: // recherche à droite
+            //printf("d\n");
+            return rechercher_accident_dans_AVL(a->fd ,cle);
+        default: // l'AVL de l'accident recherché est trouvé
+            //printf("");
+            return a;
+    }
+}
+
 
 char* rand_char_generator(int len){
 	char* new = NULL;
@@ -692,106 +657,14 @@ void main(){
 
 	printf("startig program\n");
 
-	//_AVL_accident* a = NULL;
-/*	
-	a = insert_AVL(a ,cree_accident("2005000000010"));
-	a = insert_AVL(a ,cree_accident("2005000000005"));
-	a = insert_AVL(a ,cree_accident("2005000000012"));
-	a = insert_AVL(a ,cree_accident("2005000000002"));
-	a = insert_AVL(a ,cree_accident("2005000000007"));
-	a = insert_AVL(a ,cree_accident("2005000000013"));
-	a = insert_AVL(a ,cree_accident("2005000000007"));
-	a = insert_AVL(a ,cree_accident("2005000000009"));
-	
-	print_AVL_accident_suffixe(a);
-	*/
-	//10 3 5 15 20 12 7 9
+
+                                     
+	//srand(time(NULL));
 	
 	
-	
-	_AVL_accident* a = NULL;
-	
-	a = insert_AVL(a ,cree_accident("2005000000010"));
-	a = insert_AVL(a ,cree_accident("2005000000003"));
-	a = insert_AVL(a ,cree_accident("2005000000005"));
-	a = insert_AVL(a ,cree_accident("2005000000015"));
-	a = insert_AVL(a ,cree_accident("2005000000020"));
-	a = insert_AVL(a ,cree_accident("2005000000012"));
-	a = insert_AVL(a ,cree_accident("2005000000007"));
-	a = insert_AVL(a ,cree_accident("2005000000009"));
-	
-	/*
-	a = insert_AVL(a ,cree_accident("2005000000002"));
-	a = insert_AVL(a ,cree_accident("2005000000001"));
-	a = insert_AVL(a ,cree_accident("2005000000004"));
-	a = insert_AVL(a ,cree_accident("2005000000003"));
-	a = insert_AVL(a ,cree_accident("2005000000006"));
-	a = insert_AVL(a ,cree_accident("2005000000005"));
-	a = insert_AVL(a ,cree_accident("2005000000007"));
-	//a = insert_AVL(a ,cree_accident("2005000000009"));
-	*/
-	print_AVL_accident_suffixe(a);
-	//a = equilibrer_AVL(a);
-	printf("------------------\n\n\n");
-	print_AVL_accident_suffixe(a);
-	
-/*
-AVL:
-10 3 5 15 20 12 7 9
-                                             
-                                                                                             
-                               10                                                             
-                            /     \                                                          
-                         5          15                infixe :  3 9 7 5 12 20 15 10                                    
-                       /  \        /  \                                                      
-                      3    7     12   20                                                 
-                            \                                                                
-                            9                                                           
-                                                                                                                                    
-                                                                                                                                                                                           
-                                                  value    eq                                                                                                                                    
-                              2                     1       0                                                                                                                                
-                             / \                    2       2                                                                                                                                
-                            1  4                    3       0
-                              / \                   4       1                                                                                                                                               
-                             3   6                  5       0                                                                                                                           
-                                / \                 6       0                                                                                                                                   
-                               5   7                7       0    
-                               
-                               
-                                                                                                                                                                                                                
-                                                  value    eq                                                                                                                                    
-                                                    1       0                                                                                                                                
-                                                    2       2                                                                                                                                
-                            2__4                    3       0
-                           / \  \                   4       1                                                                                                                                               
-                          1  3   6                  5       0                                                                                                                           
-                                / \                 6       0                                                                                                                                   
-                               5   7                7       0              
-                               
-                               
-                               
-                                                                                                                                                      
-                                                                                           
-                     equilibration vVVVv                                                                      
-                                                                                           
-                                 4                                                              
-                              /    \                                                       
-                            2       6                                                        
-                          /  \     / \                                                    
-                         1   3    5   7                                                      
-                                                                                           
-                                                                                                                                                                                           
-                                                                                                                                                                                           
-                                                                                                                                                                                                 
-*/
-    /*                                       
-	srand(time(NULL));
-	*/
-	/*
 	_AVL_accident* a = NULL;
 	_accident* accident = NULL;
-	int nb_accident = 500; 
+	int nb_accident = 1000; 
 	int nb_vehicule = 0; 
 	int nb_victime = 0;
 	for(int i=0;i<nb_accident;i++){
@@ -811,10 +684,10 @@ AVL:
 	print_AVL_accident_suffixe(a);
 	//print_noeud_AVL_accident(a);
 
-	*/
+	
 
 
-
+    printf("\n%p\n",rechercher_accident_dans_AVL(a ,"5547656938\0"));
 
 
 	printf("program ended\n");
