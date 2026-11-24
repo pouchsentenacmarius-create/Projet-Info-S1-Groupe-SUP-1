@@ -57,7 +57,7 @@ typedef struct{
 	_victime_genre genre ;
 	_victime_location location ;
 	int age;
-_victime_gravite gravite;
+    _victime_gravite gravite;
 
 }_victime;
 
@@ -239,7 +239,7 @@ _vehicule* rechercher_vehicule_dans_liste(_chainon_vehicule* vehicules ,int vehi
 		p = p->p_next;
 	}
 	//si le vehicule recherché n'est pas présent
-	return 0;
+	return NULL;
 }
 
 
@@ -634,17 +634,13 @@ void print_AVL_accident_suffixe(_AVL_accident* a){
 			print_AVL_accident_suffixe(a->fd);
 			printf("\n");
 		}
-		if(a){
-			print_noeud_AVL_accident(a);	
-			printf("\n");
-		}
+		print_noeud_AVL_accident(a);	
+		printf("\n");
 }
 
 void print_AVL_accident_prefixe(_AVL_accident* a){
-		if(a){
-			print_noeud_AVL_accident(a);	
-			printf("\n");
-		}
+		print_noeud_AVL_accident(a);	
+		printf("\n");
 		if(AVL_a_fils_gauche(a)){
 			print_AVL_accident_prefixe(a->fg);
 			printf("\n");	
@@ -660,10 +656,8 @@ void print_AVL_accident_interfixe(_AVL_accident* a){
 			print_AVL_accident_interfixe(a->fg);	
 			printf("\n");
 		}
-		if(a){
-			print_noeud_AVL_accident(a);	
-			printf("\n");
-		}
+		print_noeud_AVL_accident(a);	
+		printf("\n");
 		if(AVL_a_fils_droit(a)){
 			print_AVL_accident_interfixe(a->fd);
 			printf("\n");	
@@ -710,10 +704,6 @@ char* cree_cle(char* annee ,char* collision_id){
 	return new;
 }
 
-
-
-
-
 /*utile pour debugger le code*/
 char* rand_char_generator(int len){
 	char* new = NULL;
@@ -731,12 +721,66 @@ char* rand_char_generator(int len){
 
 
 _AVL_accident* getDataFromFile(const char* file_name){
-	File* f = fopen(file_name ,"r");
-	// (I)  créé les noeuds AVL
-	_AVL_accident* a = NULL;
-	fscanf(f ,"");
-	while()
-
+	
+	_AVL_accident* data_AVL = NULL;
+	
+	char* temp_year = NULL;
+	char* temp_collision_id = NULL;
+	int temp_vehicul_id = 1;
+	_victime_location temp_location = 1;
+	_victime_type temp_user_type = 1;
+	_victime_gravite temp_severity = 1;
+	_victime_genre temp_gender = 1;
+	char* temp_birth_year = NULL;
+	_vehicule_purpose temp_purpose = 0;
+	int temp_age = 0;
+	
+	_AVL_accident* temp_AVL = NULL;
+	_accident* temp_accident = NULL;
+	_vehicule* temp_vehicule = NULL;
+	_victime* temp_victime = NULL;
+	
+	
+	
+	FILE* f = fopen(file_name ,"r");
+	fscanf(f ,"year;collision_id;vehicle_id;location;user_type;severity;gender;birth_year;purpose\n");//ignore le 1er ligne du fichier car iln'y a pas de data à recupérer
+	int e = 0;
+	while(1){
+    	e = fscanf(f ,"%[^;];%[^;];%d;%d;%d;%d;%d;%d;%d\n"
+        	,temp_year
+        	,temp_collision_id
+        	,&temp_vehicul_id
+        	,&temp_location
+        	,&temp_user_type
+        	,&temp_severity
+        	,&temp_gender
+        	,&temp_birth_year
+        	,&temp_purpose
+    	);
+    	
+    	if(e==EOF || e == 0){
+    	    return data_AVL;
+    	}
+    	
+    	//verification si la cle (annee+collision_id) est dans l'AVL
+    	temp_AVL = rechercher_accident_dans_AVL(    data_AVL ,cree_cle(temp_year ,temp_collision_id)  );
+    	if(!temp_AVL){//creation de l'AVL contenant l'accident
+    	    temp_accident = cree_accident(cree_cle("2021\0","005467525674\0"));
+    	    data_AVL = insert_AVL(data_AVL ,temp_accident);
+    	}
+    	else{
+    	    temp_accident = temp_AVL->accident;      
+    	}
+        
+        //verification si le vehicule_id est dans la liste de vehicules
+        temp_vehicule = rechercher_vehicule_dans_liste(temp_accident->vehicules ,temp_vehicul_id);
+        if(!temp_AVL){//creation du vehicule
+    	    temp_vehicule = cree_vehicule(temp_vehicul_id ,temp_purpose);
+    	    ajout_vehicule_a_accident(temp_accident ,temp_vehicule);
+    	}
+        temp_victime = cree_victime(temp_user_type ,temp_gender ,temp_age ,temp_severity ,temp_location);
+        temp_vehicule = ajout_victime_a_vehicule(temp_vehicule ,temp_victime);
+	}
 }
 
 
@@ -749,9 +793,9 @@ void main(){
 
 
 
-	printf("startig program\n");
+	printf("startig program\n\n");
 
-	const char[file_name_max_len] = "cy_crash_tech_small_shuffled.csv";
+	
                                      
 	//srand(time(NULL));
 /*
@@ -782,7 +826,14 @@ void main(){
 
     printf("\n%p\n",rechercher_accident_dans_AVL(a ,"5547656938\0"));
 */
-	printf("<%s>\n",cree_cle("2021\0","005467525674\0"));
+    const char file_name[file_name_max_len] = "cy_crash_tech_small_shuffled.csv";
+    
+    printf("<%s>\n",cree_cle("2021\0","00123456789\0"));
+    
+    _AVL_accident* a = NULL;
+    //a = getDataFromFile(file_name);
+    print_AVL_accident_suffixe(a);
+	
 
 
 
