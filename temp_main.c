@@ -44,6 +44,7 @@ les données seront classifié comme
 #include <time.h>
 // la longueur de l'année ,ex: '2024'-> 4 longueur
 #define  anne_len 4 
+#define file_name_max_len 20
 
 //declaration des structure  pour la structure victime
 typedef enum {conducteur=1,passager=2,pieton=3}_victime_type;
@@ -120,9 +121,9 @@ int puissance(int base ,int exposant){
 	}
 	exposant = abs(exposant);
 
-	int total = 1
-	for(int i=0;i<exposant){
-		if(signe_exposant => 1){
+	int total = 1;
+	for(int i=0;i<exposant;i++){
+		if(signe_exposant >= 1){
 			total *= base ;
 		}
 		else{
@@ -342,15 +343,18 @@ int	AVL_a_fils_droit(_AVL_accident* a){
 	return a->fd != NULL;
 }
 
-int get_id_collision_len(char* cle){
-	char* p = cle;
-	p += anne_len;
+
+int get_char_len(char* c){
 	int len = 0;
-	while(*p != '\0'){
+	while(*c != '\0'){
 		len++;
-		p++;
+		c++;
 	}
 	return len;
+}
+
+int get_id_collision_len(char* cle){
+	return get_char_len(cle + anne_len);
 }
 
 int compare_cle(char* cle_A ,char* cle_B)/*return: 1:(A>B) 0:(A==B) -1:(A<B)*/{ 		//"2005--------------------------------\0"
@@ -685,28 +689,25 @@ _AVL_accident* rechercher_accident_dans_AVL(_AVL_accident* a ,char* cle){
     }
 }
 
-int nb_digit(int nb){/*fonction pour compter le nombre de chiffre dans un nombre. ex:6416 -> retour 4 chiffres*/
-	int total_digit = 0;
-	nb = abs(nb);
-	while(nb > 0){
-		total_digit++;
-		nb = nb/10;	
-	}
-	return total_digit;
-}
 
-char* cree_cle(int annee ,int collision_id){
-	int taille_cle = anne_len + nb_digit(collision_id) +1 ;
+
+char* cree_cle(char* annee ,char* collision_id){
+	int collision_id_len = get_char_len(collision_id); //anne_len
+	int taille_cle = collision_id_len + anne_len +1;
 	char* new = NULL;
 	new = malloc(taille_cle*sizeof(char));
 	exit_if_null(new);
 	
-	int ordre = puissance(10 ,anne_len-1)
 	for(int i=0;i<anne_len;i++){
-		new[i] = (int)(annee/puissance(10 ,ordre)); //pour obtenir le 1er chiffre
-		annee -= new[i] * puissance(10 ,ordre);
-		ordre /= 10;
+		new[i] = annee[i];
 	}
+	
+	for(int i=0;i<collision_id_len;i++){
+		new[i+anne_len] = collision_id[i];
+	}
+	new[taille_cle-1] = '\0';
+	
+	return new;
 }
 
 
@@ -729,8 +730,19 @@ char* rand_char_generator(int len){
 }
 
 
+_AVL_accident* getDataFromFile(const char* file_name){
+	File* f = fopen(file_name ,"r");
+	// (I)  créé les noeuds AVL
+	_AVL_accident* a = NULL;
+	fscanf(f ,"");
+	while()
+
+}
+
+
 
 void main(){
+
 	for(int i=0;i<500;i++){
 		printf("\n");
 	}
@@ -739,11 +751,10 @@ void main(){
 
 	printf("startig program\n");
 
-
+	const char[file_name_max_len] = "cy_crash_tech_small_shuffled.csv";
                                      
 	//srand(time(NULL));
-	
-	
+/*
 	_AVL_accident* a = NULL;
 	_accident* accident = NULL;
 	int nb_accident = 1000; 
@@ -770,6 +781,9 @@ void main(){
 
 
     printf("\n%p\n",rechercher_accident_dans_AVL(a ,"5547656938\0"));
+*/
+	printf("<%s>\n",cree_cle("2021\0","005467525674\0"));
+
 
 
 	printf("program ended\n");
