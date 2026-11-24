@@ -3,10 +3,40 @@ lien github : https://github.com/pouchsentenacmarius-create/Projet-Info-S1-Group
 */
 /*
 ./crashTech YEAR_DATA data.csv -> stat d'accident par année
-
+les données seront classifié comme
+stat_année tableau[20 année] {
+	//par année:
+	- nb accident total
+		- int nb_accident
+		
+	- nb de severité:
+		- nb_indemne
+		- nb_tue
+		- nb_blesse_grave
+		- nb_blesse_leger
+}
+	
 ./crashTech AGE_DATA data.csv -> stat d'accident par age
 
+les données seront classifié comme
+stat_age liste(taille non connue) {
+	- types de personnes
+		- nb_conducteur
+		- nb_passager
+		- nb_pieton
+	- genre
+		- nb_masculin
+		- nb_feminin
+		- nb_autre
+}
+
 ./crashTech CRASH_DATA data.csv -> stat d'accident liées à "un" accident qui sera recherché par son année et son collision_id
+les données seront classifié comme
+	l'avl accident -> accident -> liste_vehicule->vehicule -> liste_victime -> victime
+
+(BONUS) ./crashTech PLACE_DU_MORT data.csv
+	- int nb_passager_avant_mort 
+
 */
 
 #include <stdio.h>
@@ -19,7 +49,7 @@ lien github : https://github.com/pouchsentenacmarius-create/Projet-Info-S1-Group
 typedef enum {conducteur=1,passager=2,pieton=3}_victime_type;
 typedef enum {masculin=1,feminin=2,autre=3}_victime_genre;
 typedef enum {indemne=1,tue=2,blesse_grave=3,blesse_leger=4}_victime_gravite;
-typedef enum {locat_conducteur=1,locat_passager_avant=2,locat_pieton=10,locat_autre=11}_victime_location;
+typedef enum {locat_conducteur=1,locat_passager_avant=2,locat_passager_arriere=4,locat_pieton=10,locat_autre=11}_victime_location;
 
 typedef struct{
 	_victime_type type ;
@@ -79,6 +109,30 @@ int max(int a ,int b){if(a>b){return a;}return b;}
 int min(int a ,int b){if(a<b){return a;}return b;}
 
 int randint(int a,int b){return rand()%(b-a+1)+a;}
+
+int puissance(int base ,int exposant){
+	int signe_exposant;
+	if(exposant >= 0){
+		signe_exposant = 1;
+	}
+	else{
+		signe_exposant = -1;
+	}
+	exposant = abs(exposant);
+
+	int total = 1
+	for(int i=0;i<exposant){
+		if(signe_exposant => 1){
+			total *= base ;
+		}
+		else{
+			total /= base ;
+		}
+	}
+	return total;
+}
+
+
 
 _victime* cree_victime(_victime_type type ,_victime_genre genre ,int age ,_victime_gravite gravite ,_victime_location location){
     //allocation
@@ -631,7 +685,35 @@ _AVL_accident* rechercher_accident_dans_AVL(_AVL_accident* a ,char* cle){
     }
 }
 
+int nb_digit(int nb){/*fonction pour compter le nombre de chiffre dans un nombre. ex:6416 -> retour 4 chiffres*/
+	int total_digit = 0;
+	nb = abs(nb);
+	while(nb > 0){
+		total_digit++;
+		nb = nb/10;	
+	}
+	return total_digit;
+}
 
+char* cree_cle(int annee ,int collision_id){
+	int taille_cle = anne_len + nb_digit(collision_id) +1 ;
+	char* new = NULL;
+	new = malloc(taille_cle*sizeof(char));
+	exit_if_null(new);
+	
+	int ordre = puissance(10 ,anne_len-1)
+	for(int i=0;i<anne_len;i++){
+		new[i] = (int)(annee/puissance(10 ,ordre)); //pour obtenir le 1er chiffre
+		annee -= new[i] * puissance(10 ,ordre);
+		ordre /= 10;
+	}
+}
+
+
+
+
+
+/*utile pour debugger le code*/
 char* rand_char_generator(int len){
 	char* new = NULL;
 	len++;
