@@ -1,0 +1,75 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#define SIZE 20;
+
+FILE* ouverturefichier(char* name){
+	FILE *fichier = fopen(name, "r");
+	if(fichier == NULL){
+		printf("Erreur d'ouverture");
+		return 0;
+	}
+	return fichier;
+}
+
+typedef struct{
+	int nb_Accident;
+	int diff_severite;
+}Data,*pData;
+
+typedef struct chain{
+	int val;
+	struct chain* next;
+}Chain*
+
+Chain* creaChain(int val){
+	Chain* new = malloc(sizeof(Chain));
+	new->val = val;
+	new->next = NULL;
+	
+	return new;
+}
+
+Chain* addChain(Chain* Sev_diff, int val){
+	Chain* tmp = Sevdiff;
+	Chain* new = creaChain(val);
+	while(tmp != NULL){
+		tmp = tmp->next;
+	}
+	new = tmp->next;
+	
+	return Sevdiff;
+}
+
+pData creaStruct(int nbacc, int diffsev){
+	pData new = malloc(sizeof(Data));
+	new->nbacc = 0;
+	new->diff_severite = 0;
+	return new;
+}
+
+int recupSevr(FILE* file, Chain* Sevdiff, int diffsev){
+	int severite;
+	severite = fscanf(file, " %10[^;];;;;;%d;", severite);
+	if(Sevdiff == NULL){
+		addChain(severite);
+	}
+	if(Sevdiff->val == severite){
+		return diffsev;
+	}
+	else{
+		recupServ(file, Sevdiff->next, diffsev);
+	}
+
+int main(3,char *argv[]){
+	if(argv[1] != YEAR_DATA){
+		return 0;
+	}
+	pData tab[20];
+	file = ouverturefichier(argv[2]);
+	Chain* Sevdiff = NULL;
+	
+	
+	return 0;
+}
