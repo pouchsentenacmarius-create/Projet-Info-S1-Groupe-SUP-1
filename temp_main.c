@@ -41,10 +41,12 @@ les données seront classifié comme
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+
 // la longueur de l'année ,ex: '2024'-> 4 longueur
 #define  anne_len 4 
-#define file_name_max_len 20
+#define file_name_max_len 100
 
 //declaration des structure  pour la structure victime
 typedef enum {conducteur=1,passager=2,pieton=3}_victime_type;
@@ -225,8 +227,9 @@ _chainon_vehicule* ajout_liste_vehicule(_chainon_vehicule* vehicules ,_vehicule*
 
 _vehicule* rechercher_vehicule_dans_liste(_chainon_vehicule* vehicules ,int vehicule_id){
 	if(!vehicules){
-		printf("erreur le pointeur 'vehicules' dans int* rechercher_vehicule_dans_liste(...) est nul\n");
-		exit(0);
+		//printf("erreur le pointeur 'vehicules' dans _vehicule* rechercher_vehicule_dans_liste(...) est nul\n");
+		//exit(0);
+		return NULL;
 	}
 	_chainon_vehicule* p = vehicules;
 	while(p){
@@ -383,15 +386,19 @@ int compare_cle(char* cle_A ,char* cle_B)/*return: 1:(A>B) 0:(A==B) -1:(A<B)*/{ 
 	
 	if(len_A > len_B){
 		for(int i=0;i<taille_diff;i++){
-			if(cle_A[i] != '0'){
+			//printf("%d<%c>",cle_A[i] != '0',cle_A[i]);
+			if(cle_A[i+anne_len] != '0'){
+				//printf("\n");
+				//printf("a1\n");
 				return 1;
 			}
-		}
+		}printf("\n");
 	}
 	else if(len_A < len_B){
 		for(int i=0;i<taille_diff;i++){
-			if(cle_B[i] != '0'){
-				return 1;
+			if(cle_B[i+anne_len] != '0'){
+				//printf("b1\n");
+				return -1;
 			}
 		}
 	}
@@ -720,74 +727,200 @@ char* rand_char_generator(int len){
 }
 
 
+
 _AVL_accident* getDataFromFile(const char* file_name){
-	
-	_AVL_accident* data_AVL = NULL;
-	
-	char* temp_year = NULL;
-	char* temp_collision_id = NULL;
-	int temp_vehicul_id = 1;
-	_victime_location temp_location = 1;
-	_victime_type temp_user_type = 1;
-	_victime_gravite temp_severity = 1;
-	_victime_genre temp_gender = 1;
-	char* temp_birth_year = NULL;
-	_vehicule_purpose temp_purpose = 0;
-	int temp_age = 0;
-	
-	_AVL_accident* temp_AVL = NULL;
-	_accident* temp_accident = NULL;
-	_vehicule* temp_vehicule = NULL;
-	_victime* temp_victime = NULL;
-	
-	
-	
-	FILE* f = fopen(file_name ,"r");
-	fscanf(f ,"year;collision_id;vehicle_id;location;user_type;severity;gender;birth_year;purpose\n");//ignore le 1er ligne du fichier car iln'y a pas de data à recupérer
-	int e = 0;
-	while(1){
-    	e = fscanf(f ,"%[^;];%[^;];%d;%d;%d;%d;%d;%d;%d\n"
-        	,temp_year
-        	,temp_collision_id
-        	,&temp_vehicul_id
-        	,&temp_location
-        	,&temp_user_type
-        	,&temp_severity
-        	,&temp_gender
-        	,&temp_birth_year
-        	,&temp_purpose
+
+    _AVL_accident* data_AVL = NULL;
+
+    char temp_year[10];
+    char temp_collision_id[30];
+    char temp_birth_year[10];
+
+    
+    _victime_location temp_location;
+    _victime_type temp_user_type;
+    _victime_gravite temp_severity;
+    _victime_genre temp_gender;
+    int temp_age = 0;
+    
+    _vehicule_purpose temp_purpose;
+	int temp_vehicul_id;
+
+
+    _AVL_accident* temp_AVL = NULL;
+    _accident* temp_accident = NULL;
+    _vehicule* temp_vehicule = NULL;
+    _victime* temp_victime = NULL;
+
+    FILE* f = fopen(file_name, "r");
+
+    if(f == NULL){
+        perror("Erreur ouverture fichier");
+        return NULL;
+    }
+
+    // Ignorer la première ligne (en-tête)
+    char header[256];
+
+    if(fgets(header, sizeof(header), f) == NULL){
+        fclose(f);
+        return NULL;
+    }
+
+    int e;
+
+    while(1){
+
+        e = fscanf(f,
+            " %9[^;];%29[^;];%d;%d;%d;%d;%d;%9[^;];%d",
+            temp_year,
+            temp_collision_id,
+            &temp_vehicul_id,
+            &temp_location,
+            &temp_user_type,
+            &temp_severity,
+            &temp_gender,
+            temp_birth_year,
+            &temp_purpose
+        );
+	/*
+		printf("<e==%d> %s;%s;%d;%d;%d;%d;%d;%s;%d\n",e
+    	,temp_year
+    	,temp_collision_id
+    	,temp_vehicul_id
+    	,temp_location
+    	,temp_user_type
+    	,temp_severity
+    	,temp_gender
+    	,temp_birth_year
+    	,temp_purpose
     	);
+    	*/
     	
-    	if(e==EOF || e == 0){
-    	    return data_AVL;
-    	}
-    	
-    	//verification si la cle (annee+collision_id) est dans l'AVL
-    	temp_AVL = rechercher_accident_dans_AVL(    data_AVL ,cree_cle(temp_year ,temp_collision_id)  );
-    	if(!temp_AVL){//creation de l'AVL contenant l'accident
-    	    temp_accident = cree_accident(cree_cle("2021\0","005467525674\0"));
-    	    data_AVL = insert_AVL(data_AVL ,temp_accident);
-    	}
-    	else{
-    	    temp_accident = temp_AVL->accident;      
-    	}
+        // Vérification de la lecture
+        if(e == EOF){
+            break;
+        }
+
+        if(e != 9){
+            printf("Erreur de lecture d'une ligne : %d champs lus\n", e);
+            break;
+        }
         
-        //verification si le vehicule_id est dans la liste de vehicules
+        
+        // Recherche de l'accident dans l'AVL
+        temp_AVL = rechercher_accident_dans_AVL(data_AVL,cree_cle(temp_year, temp_collision_id));
+        if(!temp_AVL){
+        	 // Création de l'accident
+        	temp_accident = cree_accident( cree_cle(temp_year, temp_collision_id)  );
+        	data_AVL = insert_AVL(data_AVL, temp_accident);
+        }
+        else{
+        	temp_accident = temp_AVL->accident;
+        }
+        
+        
+        // Recherche du véhicule
         temp_vehicule = rechercher_vehicule_dans_liste(temp_accident->vehicules ,temp_vehicul_id);
-        if(!temp_AVL){//creation du vehicule
-    	    temp_vehicule = cree_vehicule(temp_vehicul_id ,temp_purpose);
-    	    ajout_vehicule_a_accident(temp_accident ,temp_vehicule);
-    	}
+
+        if(!temp_vehicule){
+            // Création du véhicule
+            temp_vehicule = cree_vehicule(temp_vehicul_id, temp_purpose);
+            ajout_vehicule_a_accident(temp_accident ,temp_vehicule);
+        }
+        temp_age = atoi(temp_year) - atoi(temp_birth_year);
         temp_victime = cree_victime(temp_user_type ,temp_gender ,temp_age ,temp_severity ,temp_location);
         temp_vehicule = ajout_victime_a_vehicule(temp_vehicule ,temp_victime);
-	}
+    }
+	
+    fclose(f);
+
+    return data_AVL;
 }
 
+/*
+do {
+		error = scanf(" %c",&menu);
+		// savoir si le choix de menu est correct en fonction du menu actuelle
+		menu_choice_correct = ((current_menu == select_menu)&&((	(((menu=='s')||(menu=='d'))&&(current_game->play==1))||((menu=='j')&&(savefile))	)||(menu=='f')||(menu=='g')||(menu=='h'))) || ((current_menu != select_menu)&&((menu=='h')||(menu=='q')));  //savoir si le menu choisi est correct en fonction du menu actuel
+		if(!error){
+		    printf("input went wrong,flushing scanf()\n");
+		    do{
+		    }while(!scanf("%c"),&menu);
+		}
+		if(!menu_choice_correct) {
+			printf("Le menu choisi est incorrect,veuillez recommencez\n");
+		}
+	} while(!menu_choice_correct);
+	
+	*/
+	
+	
+void flush_scanf(){
+	char c ;
+	//int e = 0;
+	do{
+		//printf("flush >>>>%c\n",c);
+	}while(!scanf("%c",&c));
+
+}
+
+void fonction_CRASH_DATA( _AVL_accident* data_AVL){
+	if(!data_AVL){
+		printf("il y a aucun donnée dans data_AVL pour void fonction_CRASH_DATA(..)\n");
+		exit(0);
+ 	}
+ 	
+ 	while(1){
+ 	
+ 	char temp_year[4];
+ 	char temp_collision_id[30];
+ 	char* cle = NULL;
+ 	
+ 	int e = 0;
+ 	
+ 	//flush_scanf();
+ 	while(!e){
+ 		printf("Veuillez entrez l'année de l'accident\n");
+ 		
+ 		e = scanf(" %4s",temp_year);
+ 		printf("e==%d ,temp_year==%s\n",e,temp_year);
+ 		if(!e){
+ 			flush_scanf();
+ 			printf("erreur ,veuillez recommencez\n");
+ 		}
+ 	}
+ 	flush_scanf();
+ 	e = 0;
+ 	while(!e){
+ 		printf("Veuillez entrez l'id de l'accident\n");
+ 		
+ 		e = scanf(" %29s",temp_collision_id);
+ 		if(!e){
+ 			flush_scanf();
+ 			printf("erreur ,veuillez recommencez\n");
+ 		}
+ 	}
+
+	cle = cree_cle(temp_year ,temp_collision_id);
+	printf("\ncle : %s\n\n\n",cle);
+	
+ 	_AVL_accident* accident_recherher = rechercher_accident_dans_AVL(data_AVL ,cle);
+ 	
+ 	if(!accident_recherher){
+ 		printf("aucun accident coorespondant a été trouvé pour la clé:%s\n",cle);
+ 	}
+ 	else{
+ 		print_accident(accident_recherher->accident);
+ 	}
+ 	
+ 	}
+}
 
 
 void main(){
 
-	for(int i=0;i<500;i++){
+        for(int i=0;i<500;i++){
 		printf("\n");
 	}
 
@@ -826,41 +959,21 @@ void main(){
 
     printf("\n%p\n",rechercher_accident_dans_AVL(a ,"5547656938\0"));
 */
-    const char file_name[file_name_max_len] = "cy_crash_tech_small_shuffled.csv";
+    const char file_name[file_name_max_len] = "cy_crash_tech_big_shuffled.csv\0";
+    //const char file_name[file_name_max_len] = "cy_crash_tech_small_shuffled.csv\0";
     
     printf("<%s>\n",cree_cle("2021\0","00123456789\0"));
     
     _AVL_accident* a = NULL;
-    //a = getDataFromFile(file_name);
+    a = getDataFromFile(file_name);
     print_AVL_accident_suffixe(a);
-	
+	fonction_CRASH_DATA(a);
 
 
 
 	printf("program ended\n");
-	for(int i=0;i<20;i++){
+	
+	for(int i=0;i<0;i++){
 		printf("\n");
 	}
-	/**/
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
